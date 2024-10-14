@@ -4,12 +4,11 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import eu.aston.model.SingleResource;
 import eu.aston.utils.FlowRunner;
 import eu.aston.utils.ParamsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SingleState extends BaseState {
     private final static Logger LOGGER = LoggerFactory.getLogger(SingleState.class);

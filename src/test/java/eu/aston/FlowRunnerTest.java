@@ -1,19 +1,19 @@
 package eu.aston;
 
+import static org.mockito.ArgumentMatchers.any;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.any;
-import org.mockito.Mockito;
-
 import eu.aston.model.ResourceFile;
 import eu.aston.utils.ExecProcess;
 import eu.aston.utils.FlowRunner;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 
 public class FlowRunnerTest {

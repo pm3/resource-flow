@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import eu.aston.flow.ConfigStore;
 import eu.aston.flow.StateStore;
 import eu.aston.model.Resource;

@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import eu.aston.model.JobResource;
 import eu.aston.model.MultiItem;
 import eu.aston.model.MultiResource;
