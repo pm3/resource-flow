@@ -6,11 +6,12 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Semaphore;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.aston.model.JobResource;
 import eu.aston.utils.FlowRunner;
 import eu.aston.utils.ParamsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JobState extends BaseState {
 

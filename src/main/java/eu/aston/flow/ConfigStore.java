@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import eu.aston.model.JobResource;
 import eu.aston.model.MultiItem;
 import eu.aston.model.MultiResource;
@@ -57,7 +58,7 @@ public class ConfigStore {
         Resource resource = mapper.readValue(content, Resource.class);
         // validate resource
         if (resource.getName() == null || resource.getName().isEmpty()) {
-            throw new IllegalArgumentException("Názov zdroja nemôže byť prázdny");
+            throw new IllegalArgumentException("Resource name cannot be empty");
         }
         if (resource.getParams() == null) {
             resource.setParams(new ArrayList<>());
@@ -65,7 +66,7 @@ public class ConfigStore {
         validParams(resource.getParams());
         if (resource instanceof JobResource jobResource) {
             if (jobResource.getStart() == null || jobResource.getStart().isEmpty()) {
-                throw new IllegalArgumentException("Skript start musí byť definovaný pre zdroj typu JOB");
+                throw new IllegalArgumentException("Start script must be defined for JOB type resource");
             }
             if (jobResource.getMaxConcurrentOperations() <= 0) {
                 jobResource.setMaxConcurrentOperations(1);
@@ -74,11 +75,11 @@ public class ConfigStore {
             validSingle(singleResource);
         } else if (resource instanceof MultiResource multiResource) {
             if (multiResource.getItems() == null || multiResource.getItems().size() < 2) {
-                throw new IllegalArgumentException("V zdroji typu MULTI musí byť definovaných aspoň 2 položky");
+                throw new IllegalArgumentException("At least 2 items must be defined in MULTI type resource");
             }
             for (MultiItem item : multiResource.getItems()) {
                 if (item.getName() == null || item.getName().isEmpty()) {
-                    throw new IllegalArgumentException("Názov položky v zdroji typu MULTI nesmie byť prázdny");
+                    throw new IllegalArgumentException("Item name in MULTI type resource cannot be empty");
                 }
                 if (item.getParams() == null) {
                     item.setParams(new ArrayList<>());
@@ -86,7 +87,7 @@ public class ConfigStore {
                 validParams(item.getParams());
             }
         } else {
-            throw new IllegalArgumentException("Neznámy typ zdroja: " + resource.getKind());
+            throw new IllegalArgumentException("Unknown resource type: " + resource.getKind());
         }
         resources.put(resource.getName(), resource);
         return resource;
@@ -94,20 +95,20 @@ public class ConfigStore {
 
     private void validSingle(SingleResource singleResource) {
         if (singleResource.getStart() == null || singleResource.getStart().isEmpty()) {
-            throw new IllegalArgumentException("Skript start musí byť definovaný pre zdroj typu SINGLE");
+            throw new IllegalArgumentException("Start script must be defined for SINGLE type resource");
         }
         if (singleResource.getStop() == null || singleResource.getStop().isEmpty()) {
-            throw new IllegalArgumentException("Skript stop musí byť definovaný pre zdroj typu SINGLE");
+            throw new IllegalArgumentException("Stop script must be defined for SINGLE type resource");
         }
         if (singleResource.getFiles() == null) {
             singleResource.setFiles(new ArrayList<>());
         }
         for (ResourceFile file : singleResource.getFiles()) {
             if (file.name() == null || file.name().isEmpty()) {
-                throw new IllegalArgumentException("Názov súboru musí byť definovaný");
+                throw new IllegalArgumentException("File name must be defined");
             }
             if (file.content() == null || file.content().isEmpty()) {
-                throw new IllegalArgumentException("Obsah súboru musí byť definovaný");
+                throw new IllegalArgumentException("File content must be defined");
             }
         }
     }
@@ -115,10 +116,10 @@ public class ConfigStore {
     private void validParams(List<ResourceParam> params) {
         for (ResourceParam param : params) {
             if (param.name() == null || param.name().isEmpty()) {
-                throw new IllegalArgumentException("Názov parametru nesmie byť prázdny");
+                throw new IllegalArgumentException("Parameter name cannot be empty");
             }
             if (param.value() == null && param.secret()==null && param.configMap()==null) {
-                throw new IllegalArgumentException("Hodnota parametru nesmie byť prázdna");
+                throw new IllegalArgumentException("Parameter value cannot be empty");
             }
         }
     }
