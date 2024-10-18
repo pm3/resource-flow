@@ -2,6 +2,7 @@ package eu.aston.flow;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -23,10 +24,11 @@ public class StateStore {
 
     private final Map<String, BaseState> states = new ConcurrentHashMap<>();
     private final Map<Class<? extends Resource>, IStateFactory> factories = new ConcurrentHashMap<>() {{
-        put(JobResource.class, JobState::factory);
-        put(SingleResource.class, SingleState::factory);
-        put(MultiResource.class, MultiState::factory);
+        put(JobResource.class, (resource, stateStore) -> JobState.factory((JobResource) resource, stateStore));
+        put(SingleResource.class, (resource, stateStore) -> SingleState.factory((SingleResource) resource, stateStore));
+        put(MultiResource.class, (resource, stateStore) -> MultiState.factory((MultiResource) resource, stateStore));
     }};
+
     public StateStore(FlowRunner flowRunner, ParamsBuilder paramsBuilder, ConfigStore configStore, File baseDir) {
         this.flowRunner = flowRunner;
         this.paramsBuilder = paramsBuilder;
@@ -42,6 +44,10 @@ public class StateStore {
         for(BaseState state : states.values()) {
             state.checkState();
         }
+    }
+
+    public Executor getExecutor() {
+        return executor;
     }
 
     public FlowRunner getFlowRunner() {
