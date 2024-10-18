@@ -7,6 +7,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.aston.model.JobResource;
 import eu.aston.model.MultiResource;
 import eu.aston.model.Resource;
@@ -15,6 +18,8 @@ import eu.aston.utils.FlowRunner;
 import eu.aston.utils.ParamsBuilder;
 
 public class StateStore {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StateStore.class);
 
     private final FlowRunner flowRunner;
     private final ParamsBuilder paramsBuilder;
@@ -72,11 +77,11 @@ public class StateStore {
         BaseState state = factory.create(resource, this);
         if(parent!=null) {
             states.put(parent+":"+resource.getName(), state);
+            LOGGER.info("Added state: {} -> {}", parent+":"+resource.getName(), state.getName());
         } else {
             states.put(resource.getName(), state);
+            LOGGER.info("Added state: {} -> {}", resource.getName(), state.getName());
         }
         return state;
     }
-
-    
 }

@@ -18,7 +18,7 @@ import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.http.exceptions.HttpStatusException;
 
-@Controller("/resources")
+@Controller("/resource-flow")
 public class ResourceController {
 
     private final StateStore stateStore;
@@ -27,7 +27,7 @@ public class ResourceController {
         this.stateStore = stateStore;
     }
 
-    @Get("/{name}")
+    @Get("/state/{name}")
     public ResourceStateData fetchResource(@PathVariable String name) {
         BaseState state = stateStore.getState(name);       
         if(state != null) {
@@ -36,7 +36,7 @@ public class ResourceController {
         throw new HttpStatusException(HttpStatus.NOT_FOUND, "Resource not found");
     }
 
-    @Post("/{name}/start")
+    @Post("/start/{name}")
     public void startJob(@PathVariable String name, @Body Map<String, String> body) {
         BaseState state = stateStore.getState(name);
         if(state instanceof JobState jobState) {
@@ -46,7 +46,7 @@ public class ResourceController {
         }
     }
 
-    @Post("/{name}/run")
+    @Post("/run/{name}")
     public void run(@PathVariable String name, @QueryValue("count") int count, @QueryValue("up") @Nullable Boolean up) {
         BaseState state = stateStore.getState(name);   
         if(state instanceof SingleState singleState) {
@@ -58,4 +58,11 @@ public class ResourceController {
         }
     }
 
+    @Post("/watchdog/{name}")
+    public void watchdog(@PathVariable String name) {
+        BaseState state = stateStore.getState(name);
+        if(state instanceof SingleState singleState) {
+            singleState.setWatchdog();
+        }
+    }
 }

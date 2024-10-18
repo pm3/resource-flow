@@ -9,7 +9,7 @@ public class MultiResource extends Resource {
     private String start;
     private String stop;
     private String check;
-    private List<SingleResource> items;
+    private List<MultiItem> items;
 
     public String getStart() {
         return start;
@@ -35,11 +35,11 @@ public class MultiResource extends Resource {
         this.check = check;
     }
 
-    public List<SingleResource> getItems() {
+    public List<MultiItem> getItems() {
         return items;
     }
 
-    public void setItems(List<SingleResource> items) {
+    public void setItems(List<MultiItem> items) {
         this.items = items;
     }   
 }

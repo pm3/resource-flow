@@ -58,7 +58,7 @@ public class ParamsBuilder {
         String name = parts.length==3 ? parts[1] : parts[0];
         String property = parts.length==3 ? parts[2] : parts[1];
 
-        if(kubeData.containsKey(namespace+"/"+name+"/"+property)) {
+        if(!kubeData.containsKey(namespace+"/"+name+"/"+property)) {
             loadKubeData(type,namespace,name);
         }
         return kubeData.get(namespace+"/"+name+"/"+property);

@@ -1,4 +1,9 @@
 package eu.aston;
 
-public class FlowConfig {
-}
+import java.io.File;
+
+import io.micronaut.context.annotation.ConfigurationProperties;
+
+@ConfigurationProperties("flow")
+public record FlowConfig(File configDir,
+                         File baseDir){}

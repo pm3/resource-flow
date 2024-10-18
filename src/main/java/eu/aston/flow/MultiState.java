@@ -3,7 +3,9 @@ package eu.aston.flow;
 import java.io.File;
 import java.util.List;
 
+import eu.aston.model.MultiItem;
 import eu.aston.model.MultiResource;
+import eu.aston.model.SingleResource;
 
 public class MultiState extends BaseState {
 
@@ -15,7 +17,7 @@ public class MultiState extends BaseState {
     MultiState(MultiResource multiResource, StateStore stateStore) {
         super(multiResource, stateStore.getFlowRunner(), stateStore.getParamsBuilder(), new File(stateStore.getBaseDir(), multiResource.getName()), stateStore.getConfigStore());
         this.multiResource = multiResource;
-        this.items = multiResource.getItems().stream().map(item -> (SingleState)stateStore.addResource(multiResource.getName(),item)).toList();
+        this.items = multiResource.getItems().stream().map(item -> mapSingle(item, multiResource, stateStore)).toList();
     }
 
     public void setCurrentInstances(int currentInstances, boolean up) {
@@ -65,10 +67,20 @@ public class MultiState extends BaseState {
     @Override
     public int getRunning() {
         return items.stream().mapToInt(SingleState::getRunning).sum();
-    }   
+    }
+
+    private SingleState mapSingle(MultiItem item, MultiResource multiResource, StateStore stateStore) {
+        SingleResource singleResource = new SingleResource();
+        singleResource.setName(item.getName());
+        singleResource.setParams(item.getParams());
+        singleResource.setStart(item.getStart());
+        singleResource.setStop(item.getStop());
+        singleResource.setCheck(item.getCheck());
+        singleResource.setFiles(multiResource.getFiles());
+        return SingleState.factory(singleResource, stateStore);
+    }
 
     public static MultiState factory(MultiResource multiResource, StateStore stateStore) {
         return new MultiState(multiResource, stateStore);
     }
-
 }

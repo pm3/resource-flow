@@ -9,11 +9,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import eu.aston.model.JobResource;
+import eu.aston.model.MultiItem;
 import eu.aston.model.MultiResource;
 import eu.aston.model.Resource;
 import eu.aston.model.ResourceFile;
@@ -21,6 +25,8 @@ import eu.aston.model.ResourceParam;
 import eu.aston.model.SingleResource;
 
 public class ConfigStore {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigStore.class);
 
     private final Map<String, Resource> resources = new HashMap<>();
     private final ObjectMapper mapper;
@@ -56,11 +62,12 @@ public class ConfigStore {
     private Resource loadResource(Path path) throws IOException {
         String content = Files.readString(path);
         Resource resource = mapper.readValue(content, Resource.class);
+        LOGGER.info("Loaded resource: {} -> {}", path, resource.getName());
         // validate resource
         if (resource.getName() == null || resource.getName().isEmpty()) {
             throw new IllegalArgumentException("Resource name cannot be empty");
         }
-        if (!resource.getName().matches("^[a-zA-Z0-9_]+$")) {
+        if (!resource.getName().matches("^[a-zA-Z0-9_\\-]+$")) {
             throw new IllegalArgumentException("Resource name can only contain letters, numbers and underscores");
         }
         if (resource.getParams() == null) {
@@ -87,7 +94,7 @@ public class ConfigStore {
             if (multiResource.getItems() == null || multiResource.getItems().size() < 2) {
                 throw new IllegalArgumentException("At least 2 items must be defined in MULTI type resource");
             }
-            for (SingleResource item : multiResource.getItems()) {
+            for (MultiItem item : multiResource.getItems()) {
                 if (item.getName() == null || item.getName().isEmpty()) {
                     throw new IllegalArgumentException("Item name in MULTI type resource cannot be empty");
                 }
@@ -113,14 +120,8 @@ public class ConfigStore {
                 }
                 item.getParams().addAll(multiResource.getParams());
                 validParams(item.getParams());
-                if (item.getFiles() == null) {
-                    item.setFiles(new ArrayList<>());
-                }
-                if(multiResource.getFiles()!=null) {
-                    item.getFiles().addAll(multiResource.getFiles());
-                }
-                validFiles(item);
             }
+            validFiles(multiResource);
         } else {
             throw new IllegalArgumentException("Unknown resource type: " + resource.getKind());
         }

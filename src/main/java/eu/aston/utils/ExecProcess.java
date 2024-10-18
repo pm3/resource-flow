@@ -40,7 +40,7 @@ public class ExecProcess {
             builder.directory(workDir);
             builder.redirectOutput(ProcessBuilder.Redirect.PIPE);
             builder.redirectError(ProcessBuilder.Redirect.PIPE);
-            LOGGER.debug("{}", String.join(" ", arguments));
+            LOGGER.info("{}", String.join(" ", osargs));
             p = builder.start();
             try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 while (true) {

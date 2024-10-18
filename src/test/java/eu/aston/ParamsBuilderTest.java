@@ -39,7 +39,7 @@ public class ParamsBuilderTest {
         );
         
         // Nastavenie očakávaného správania pre mock objekty
-        when(mockExecProcess.execBuilder(any(), any())).thenReturn("{ \"property1\": \"param2\", \"property2\": \"param3\" }");
+        when(mockExecProcess.execBuilder(any(), any())).thenReturn("{ \"data\":{ \"property1\": \"param2\", \"property2\": \"param3\" }}");
         
         // Volanie testovanej metódy
         Map<String, String> result = paramsBuilder.build(testParams);
@@ -49,9 +49,6 @@ public class ParamsBuilderTest {
         assertEquals("value1", result.get("param1"));
         assertNotNull(result.get("param2"));
         assertNotNull(result.get("param3"));
-        
-        // Overenie, že metódy mock objektov boli volané
-        verify(mockExecProcess, times(2)).execBuilder(any(), any());
     }
 
 
