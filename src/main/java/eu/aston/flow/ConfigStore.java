@@ -14,7 +14,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import eu.aston.model.JobResource;
-import eu.aston.model.MultiItem;
 import eu.aston.model.MultiResource;
 import eu.aston.model.Resource;
 import eu.aston.model.ResourceFile;
@@ -36,7 +35,7 @@ public class ConfigStore {
     }
 
     public List<Resource> loadResources(Path configDir) throws IOException {
-        List<Resource> resources = new ArrayList<>();
+        List<Resource> resourceList = new ArrayList<>();
         try (Stream<Path> paths = Files.walk(configDir)) {
             paths
                     .filter(Files::isRegularFile)
@@ -44,13 +43,14 @@ public class ConfigStore {
                     .forEach(path -> {
                         try {
                             Resource resource = loadResource(path);
-                            resources.add(resource);
+                            resources.put(resource.getName(), resource);
+                            resourceList.add(resource);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     });
         }
-        return resources;
+        return resourceList;
     }
 
     private Resource loadResource(Path path) throws IOException {
@@ -59,6 +59,9 @@ public class ConfigStore {
         // validate resource
         if (resource.getName() == null || resource.getName().isEmpty()) {
             throw new IllegalArgumentException("Resource name cannot be empty");
+        }
+        if (!resource.getName().matches("^[a-zA-Z0-9_]+$")) {
+            throw new IllegalArgumentException("Resource name can only contain letters, numbers and underscores");
         }
         if (resource.getParams() == null) {
             resource.setParams(new ArrayList<>());
@@ -72,19 +75,51 @@ public class ConfigStore {
                 jobResource.setMaxConcurrentOperations(1);
             }
         } else if (resource instanceof SingleResource singleResource) {
-            validSingle(singleResource);
+            if (singleResource.getStart() == null || singleResource.getStart().isEmpty()) {
+                throw new IllegalArgumentException("Start script must be defined for SINGLE type resource");
+            }
+        
+            if (singleResource.getStop() == null || singleResource.getStop().isEmpty()) {
+                throw new IllegalArgumentException("Stop script must be defined for SINGLE type resource");
+            }
+            validFiles(singleResource);
         } else if (resource instanceof MultiResource multiResource) {
             if (multiResource.getItems() == null || multiResource.getItems().size() < 2) {
                 throw new IllegalArgumentException("At least 2 items must be defined in MULTI type resource");
             }
-            for (MultiItem item : multiResource.getItems()) {
+            for (SingleResource item : multiResource.getItems()) {
                 if (item.getName() == null || item.getName().isEmpty()) {
                     throw new IllegalArgumentException("Item name in MULTI type resource cannot be empty");
                 }
+                if(item.getStart()==null && multiResource.getStart()!=null) {
+                    item.setStart(multiResource.getStart());
+                }
+                if(item.getStop()==null && multiResource.getStop()!=null) {
+                    item.setStop(multiResource.getStop());
+                }
+                if(item.getCheck()==null && multiResource.getCheck()!=null) {
+                    item.setCheck(multiResource.getCheck());
+                }
+                if (item.getStart() == null || item.getStart().isEmpty()) {
+                    throw new IllegalArgumentException("Start script must be defined for MULTI["+item.getName()+"] type resource");
+                }
+            
+                if (item.getStop() == null || item.getStop().isEmpty()) {
+                    throw new IllegalArgumentException("Stop script must be defined for MULTI["+item.getName()+"] type resource");
+                }
+
                 if (item.getParams() == null) {
                     item.setParams(new ArrayList<>());
                 }
+                item.getParams().addAll(multiResource.getParams());
                 validParams(item.getParams());
+                if (item.getFiles() == null) {
+                    item.setFiles(new ArrayList<>());
+                }
+                if(multiResource.getFiles()!=null) {
+                    item.getFiles().addAll(multiResource.getFiles());
+                }
+                validFiles(item);
             }
         } else {
             throw new IllegalArgumentException("Unknown resource type: " + resource.getKind());
@@ -93,13 +128,7 @@ public class ConfigStore {
         return resource;
     }
 
-    private void validSingle(SingleResource singleResource) {
-        if (singleResource.getStart() == null || singleResource.getStart().isEmpty()) {
-            throw new IllegalArgumentException("Start script must be defined for SINGLE type resource");
-        }
-        if (singleResource.getStop() == null || singleResource.getStop().isEmpty()) {
-            throw new IllegalArgumentException("Stop script must be defined for SINGLE type resource");
-        }
+    private void validFiles(Resource singleResource) {
         if (singleResource.getFiles() == null) {
             singleResource.setFiles(new ArrayList<>());
         }

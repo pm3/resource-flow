@@ -55,6 +55,8 @@ public abstract class BaseState {
         }
     }
 
+    public abstract void checkState();
+
     public abstract int getRunning();
 
     public String getName() {

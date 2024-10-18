@@ -47,6 +47,10 @@ public class JobState extends BaseState {
     }
 
     @Override
+    public void checkState() {
+    }
+
+    @Override
     public int getRunning() {
         return semaphore.availablePermits();
     }

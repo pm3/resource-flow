@@ -29,7 +29,7 @@ public class AppFactory {
         List<Resource> resources = configStore.loadResources(configDir.toPath());
         StateStore stateStore = new StateStore(flowRunner, paramsBuilder, configStore, baseDir);
         for(Resource resource : resources) {
-            stateStore.addResource(resource);
+            stateStore.addResource(null, resource);
         }   
         return stateStore;
     }

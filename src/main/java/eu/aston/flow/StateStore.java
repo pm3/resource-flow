@@ -34,13 +34,47 @@ public class StateStore {
         return states.get(name);
     }
 
-    public void addResource(Resource resource) {
-        if (resource instanceof JobResource jobResource) {
-            states.put(resource.getName(), new JobState(jobResource, executor, flowRunner, paramsBuilder, baseDir, configStore));
-        } else if (resource instanceof SingleResource singleResource) {
-            states.put(resource.getName(), new SingleState(singleResource, flowRunner, paramsBuilder, baseDir, configStore));
-        } else if (resource instanceof MultiResource multiResource) {
-            states.put(resource.getName(), new MultiState(multiResource, flowRunner, paramsBuilder, baseDir, configStore));
+public void checkState() {
+        for(BaseState state : states.values()) {
+            state.checkState();
         }
     }
+
+    public FlowRunner getFlowRunner() {
+        return flowRunner;
+    }
+
+    public ParamsBuilder getParamsBuilder() {
+        return paramsBuilder;
+    }
+
+    public ConfigStore getConfigStore() {
+        return configStore;
+    }
+
+    public File getBaseDir() {
+        return baseDir;
+    }
+
+    public BaseState addResource(String parent,Resource resource) {
+        BaseState state = null;
+        if (resource instanceof JobResource jobResource) {
+            state = new JobState(jobResource, executor, flowRunner, paramsBuilder, baseDir, configStore);
+        } else if (resource instanceof SingleResource singleResource) {
+            state = new SingleState(singleResource, flowRunner, paramsBuilder, baseDir, configStore);
+        } else if (resource instanceof MultiResource multiResource) {
+            state = new MultiState(multiResource, this);
+        } else {
+            throw new IllegalArgumentException("Unsupported resource type: " + resource.getClass().getName());
+        }
+        if(parent!=null) {
+            states.put(parent+":"+resource.getName(), state);
+
+        } else {
+            states.put(resource.getName(), state);
+        }
+        return state;
+    }
+
+    
 }

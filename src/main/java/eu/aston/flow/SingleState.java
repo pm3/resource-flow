@@ -1,6 +1,7 @@
 package eu.aston.flow;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,41 +15,55 @@ import eu.aston.utils.ParamsBuilder;
 public class SingleState extends BaseState {
     private final static Logger LOGGER = LoggerFactory.getLogger(SingleState.class);
 
-    private final SingleResource singleResource; 
-    private boolean running = false;
-    private boolean lastState = false;
+    private final SingleResource singleResource;
+    private boolean expectedState = false;
+    private boolean aktState = false;
+    private long lastWatchdog = 0;
+    private static final long WATCHDOG_EXPIRE = Duration.ofSeconds(60).toMillis();
+    private long lastCheck = 0;
+    private static final long CHECK_INTERVAL = Duration.ofSeconds(300).toMillis();
 
     public SingleState(SingleResource singleResource, FlowRunner flowRunner, ParamsBuilder paramsBuilder, File baseDir, ConfigStore configStore) {
         super(singleResource, flowRunner, paramsBuilder, new File(baseDir, singleResource.getName()), configStore);
         this.singleResource = singleResource;
     }
 
-    public synchronized void setRunning(boolean running) {
-        this.running = running;
+    public void setRunning(boolean running) {
+        this.expectedState = running;
         checkState();
     }
 
+    public void setWatchdog() {
+        this.lastWatchdog = System.currentTimeMillis();
+    }
+
+    @Override
 	public void checkState() {
-        boolean actualState = lastState;
-        if(singleResource.getCheck() != null) {
+        long now = System.currentTimeMillis();
+        if(singleResource.getCheck() != null && lastWatchdog < now - WATCHDOG_EXPIRE && lastCheck < now - CHECK_INTERVAL) {
             Map<String, String> parameters = new HashMap<>(getParams());
             runNow(singleResource.getCheck(), parameters);
-            actualState = checkStateVariable(parameters, actualState);
+            this.lastCheck = now;
+            this.aktState = checkStateVariable(parameters, aktState);
         }
-        if(this.running && !actualState) {
+        if(this.expectedState && !aktState) {
             Map<String, String> parameters = new HashMap<>(getParams());
             runNow(singleResource.getStart(), parameters);
-            this.lastState = true;
-        } else if(!this.running && actualState) {
+            this.aktState = expectedState;
+            this.lastCheck = now;
+            this.lastWatchdog = now+WATCHDOG_EXPIRE*3;
+        } else if(!this.expectedState && aktState) {
             Map<String, String> parameters = new HashMap<>(getParams());
             runNow(singleResource.getStop(), parameters);
-            this.lastState = false;
+            this.aktState = expectedState;
+            this.lastCheck = now;
+            this.lastWatchdog = now+WATCHDOG_EXPIRE*3;
         }
 	}
 
     @Override
     public int getRunning() {
-        return running ? 1 : 0;
+        return aktState ? 1 : 0;
     }
 
     public static boolean checkStateVariable(Map<String, String> parameters, boolean defaultState) {

@@ -58,14 +58,4 @@ public class ResourceController {
         }
     }
 
-    @Post("/{name}/min")
-    public void min(@PathVariable String name, @QueryValue("count") int count, @QueryValue("up") @Nullable Boolean up) {
-        BaseState state = stateStore.getState(name);   
-        if(state instanceof MultiState multiState) {
-            multiState.setMinInstances(count, up != null ? up : false);
-        } else {
-            throw new HttpStatusException(HttpStatus.BAD_REQUEST, "Resource is not a multi");
-        }
-    }
-
 }
