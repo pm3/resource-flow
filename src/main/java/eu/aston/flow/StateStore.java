@@ -22,7 +22,11 @@ public class StateStore {
     private final File baseDir;
 
     private final Map<String, BaseState> states = new ConcurrentHashMap<>();
-
+    private final Map<Class<? extends Resource>, IStateFactory> factories = new ConcurrentHashMap<>() {{
+        put(JobResource.class, JobState::factory);
+        put(SingleResource.class, SingleState::factory);
+        put(MultiResource.class, MultiState::factory);
+    }};
     public StateStore(FlowRunner flowRunner, ParamsBuilder paramsBuilder, ConfigStore configStore, File baseDir) {
         this.flowRunner = flowRunner;
         this.paramsBuilder = paramsBuilder;
@@ -34,7 +38,7 @@ public class StateStore {
         return states.get(name);
     }
 
-public void checkState() {
+    public void checkState() {
         for(BaseState state : states.values()) {
             state.checkState();
         }
@@ -57,19 +61,11 @@ public void checkState() {
     }
 
     public BaseState addResource(String parent,Resource resource) {
-        BaseState state = null;
-        if (resource instanceof JobResource jobResource) {
-            state = new JobState(jobResource, executor, flowRunner, paramsBuilder, baseDir, configStore);
-        } else if (resource instanceof SingleResource singleResource) {
-            state = new SingleState(singleResource, flowRunner, paramsBuilder, baseDir, configStore);
-        } else if (resource instanceof MultiResource multiResource) {
-            state = new MultiState(multiResource, this);
-        } else {
-            throw new IllegalArgumentException("Unsupported resource type: " + resource.getClass().getName());
-        }
+        IStateFactory factory = Optional.ofNullable(factories.get(resource.getClass()))
+            .orElseThrow(() -> new IllegalArgumentException("Unsupported resource type: " + resource.getClass().getName()));
+        BaseState state = factory.create(resource, this);
         if(parent!=null) {
             states.put(parent+":"+resource.getName(), state);
-
         } else {
             states.put(resource.getName(), state);
         }

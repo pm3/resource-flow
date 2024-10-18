@@ -54,4 +54,8 @@ public class JobState extends BaseState {
     public int getRunning() {
         return semaphore.availablePermits();
     }
+
+    public static JobState factory(JobResource jobResource, StateStore stateStore) {
+        return new JobState(jobResource, stateStore.getExecutor(), stateStore.getFlowRunner(), stateStore.getParamsBuilder(), stateStore.getBaseDir(), stateStore.getConfigStore());
+    }   
 }

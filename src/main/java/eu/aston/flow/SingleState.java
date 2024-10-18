@@ -76,4 +76,7 @@ public class SingleState extends BaseState {
         return defaultState;
     }
 
+    public static SingleState factory(SingleResource singleResource, StateStore stateStore) {
+        return new SingleState(singleResource, stateStore.getFlowRunner(), stateStore.getParamsBuilder(), stateStore.getBaseDir(), stateStore.getConfigStore());
+    }
 }

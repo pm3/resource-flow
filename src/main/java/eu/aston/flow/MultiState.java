@@ -67,4 +67,8 @@ public class MultiState extends BaseState {
         return items.stream().mapToInt(SingleState::getRunning).sum();
     }   
 
+    public static MultiState factory(MultiResource multiResource, StateStore stateStore) {
+        return new MultiState(multiResource, stateStore);
+    }
+
 }
